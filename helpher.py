@@ -1,3 +1,4 @@
+import csv
 import random
 import numpy as np
 from data import CalculateFitnessTable, Population
@@ -73,6 +74,14 @@ def is_already_selected(population: CalculateFitnessTable, populations: list[Cal
         
     return False
 
+def export_to_csv(data, filename):
+    headers = list(data[0].keys())
 
+    with open(filename, 'w', newline='') as csvfile:
+        writer = csv.DictWriter(csvfile, fieldnames=headers)
+
+        writer.writeheader()
+        for row in data:
+            writer.writerow(row)
 
 

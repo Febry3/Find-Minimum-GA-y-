@@ -6,7 +6,7 @@ from tabulate import tabulate
 CROSSOVER_RATE = 0.69
 MUTATION_RATE = 0.1
 POPULATION_SIZE = 5
-GENERATIONS = 100
+GENERATIONS = 1000
 BIT_LENGTH = 22
 CHROMOSOME_LENGTH = 11
 
@@ -61,7 +61,7 @@ def parent_selection(populations: list)-> list:
     return selected_populations
 
 def cross_over(populations: list)-> list:
-    cross_point: int = random.randint(1, 21)
+    cross_point: int = random.randint(0, 21)
     print(f'Cross Point ada pada titik ke-{cross_point}')
     
     if round(random.uniform(0, 1), 1) <= CROSSOVER_RATE:
@@ -128,11 +128,12 @@ def generate_step_1_table(populations:list)-> list:
     return data
 
 if __name__=="__main__":
+    best_chromosome_history: list = []
     data: list = initialize_poplations()
     best_chromosome = None
     
     for i in range(GENERATIONS):
-        print(f'Iterasi ke-{i+1}\n\n')
+        print(f'\n\nIterasi ke-{i+1}\n\n')
         print('Tahap 1: Inisiasi / Regenerate')
         print(tabulate(generate_step_1_table(data), headers=['No', 'x1 (11 bits)', 'x2 (11 bits)', 'Chromosome (22 bits)', 'Decoded x1 Chromosome', 'Decoded x2 Chromosome']))
         data = calculate_fitness_for_all_populations(data)
@@ -157,12 +158,18 @@ if __name__=="__main__":
         print('\n\n\nTahap 5: Evaluasi (Chromosome yang unggul pada populasi ini adalah:)')
         current_best_chromosome = evaluate_populations(data)
         print(tabulate(current_best_chromosome, headers=['No', 'x1 (11 bits)', 'x2 (11 bits)', 'Objective Function', 'Fitness[i]', 'Cumulative', 'Lower Bound', 'Upper Bound']))
+        
+        best_chromosome_history.append({"x1": current_best_chromosome[0].x1, "x2": current_best_chromosome[0].x2, "objective_val": float(current_best_chromosome[0].val)})
 
         data = regenerate_populations(data)
 
         best_chromosome = evaluate_populations([current_best_chromosome[0], best_chromosome[0]]) if best_chromosome != None else current_best_chromosome
+        
 
     print(f'\n\n\nChromosome Terbaik Setelah {GENERATIONS} Kali Iterasi')
     print(tabulate(best_chromosome, headers=['No', 'x1 (11 bits)', 'x2 (11 bits)', 'Objective Function', 'Fitness[i]', 'Cumulative', 'Lower Bound', 'Upper Bound']))
-    print(f'x1: {decode_chromosome(best_chromosome[0].x1)}')
-    print(f'x2: {decode_chromosome(best_chromosome[0].x2)}')
+    print(f'\nDecoded x1: {decode_chromosome(best_chromosome[0].x1)}')
+    print(f'Decoded x2: {decode_chromosome(best_chromosome[0].x2)}')
+    best_chromosome_history.append({"x1": best_chromosome[0].x1, "x2": best_chromosome[0].x2, "objective_val": float(best_chromosome[0].val)})
+    
+    export_to_csv(best_chromosome_history, 'output.csv')
