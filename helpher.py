@@ -1,4 +1,5 @@
 import csv
+import math
 import random
 import numpy as np
 from data import CalculateFitnessTable, Population
@@ -17,7 +18,7 @@ def biner_to_decimal(chromosome: str)->float:
 #mendecode chromosome 11 bit
 def decode_chromosome(chromosome: str)->float:
     decimal: float = biner_to_decimal(chromosome)
-    decimal = (decimal - 1000) / 100
+    decimal = (decimal - 10000) / 1000
 
     return decimal
 
@@ -41,7 +42,9 @@ def generate_initial_population()->list:
 
 #fungsi objective
 def calculate_objective_function(x1: int, x2: int)-> float:
-    return round(-(np.sin(x1)*np.cos(x2)*np.tan(x1+x2) + (0.75 * np.exp(1 - np.sqrt(x1**2)))), 3)
+    #return -1 * (np.sin(x1)*np.cos(x2)*np.tanh(x1+x2) + (0.75 * np.exp(1 - np.sqrt(x1*x1))))
+    #return -1 * (math.sin(x1) * math.cos(x2) * math.tanh(x1 + x2) + (3/4) * math.exp(1 - math.sqrt(x1*x1)))
+    return -(math.sin(x1) * math.cos(x2) + 4/5 * math.exp(1 - math.sqrt(x1**2 + x2**2)))
 
 #fungsi fitness dengan pemodifikasi untuk menghitung peluang dengan nilai fungsi objektif yang kecil memiliki kemungkinan yang besar
 def calculate_fitness(populations_obj_values: list)-> float:
@@ -57,7 +60,7 @@ def calculate_cumulative(populations_obj_values: list)-> list:
         cum_val += val
         data.append(cum_val)
 
-    print(data)
+    # print(data)
     return data
 
 def select_chromosome(random_num: float, populations: list[CalculateFitnessTable])-> CalculateFitnessTable:
@@ -85,3 +88,8 @@ def export_to_csv(data, filename):
             writer.writerow(row)
 
 
+def checkInList(list1, list2):
+    for item in list1:
+        if (item in list2):
+            True
+    return False

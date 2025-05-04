@@ -3,12 +3,12 @@ from data import *
 from helpher import *
 from tabulate import tabulate
 
-CROSSOVER_RATE = 0.69
-MUTATION_RATE = 0.1
+CROSSOVER_RATE = 0.8
+MUTATION_RATE = 0.2
 POPULATION_SIZE = 5
-GENERATIONS = 1000
-BIT_LENGTH = 22
-CHROMOSOME_LENGTH = 11
+GENERATIONS = 10000
+BIT_LENGTH = 30
+CHROMOSOME_LENGTH = 15
 
 def initialize_poplations()->list :
     data: list = []
@@ -33,7 +33,7 @@ def calculate_fitness_for_all_populations(populations: list)-> list:
     adjusted_data = calculate_fitness([dt.val for dt in data])
     sum_adjusted_data = sum(adjusted_data)
     for i in range(len(data)):
-        data[i].fitness = round(adjusted_data[i]/sum_adjusted_data, 3)
+        data[i].fitness = adjusted_data[i]/sum_adjusted_data
 
     #mengisi attribute cumulative pada array data
     temp: float = 0
@@ -43,7 +43,7 @@ def calculate_fitness_for_all_populations(populations: list)-> list:
 
     for i in range(len(data)):
         data[i].upper_interval = data[i].cumulative  if i == (len(data)-1) else data[i].cumulative
-        data[i].lower_interval = 0 if i == 0 else data[i-1].cumulative + 0.001
+        data[i].lower_interval = 0 if i == 0 else data[i-1].cumulative + 0.000001
 
     return data
 
@@ -51,7 +51,7 @@ def parent_selection(populations: list)-> list:
     selected_populations: list[CalculateFitnessTable] = []
 
     while len(selected_populations) < 2:
-        random_num: float = round(random.uniform(0,1), 3)
+        random_num: float = random.uniform(0,1)
         selected_candidate: CalculateFitnessTable = select_chromosome(random_num, populations)
         if(selected_candidate == None): continue
 
@@ -62,7 +62,7 @@ def parent_selection(populations: list)-> list:
 
 def cross_over(populations: list)-> list:
     cross_point: int = random.randint(0, 21)
-    print(f'Cross Point ada pada titik ke-{cross_point}')
+    #print(f'Cross Point ada pada titik ke-{cross_point}')
     
     if round(random.uniform(0, 1), 1) <= CROSSOVER_RATE:
         is_in_range: bool = False
@@ -77,17 +77,17 @@ def cross_over(populations: list)-> list:
             t_chromosome_1 = t_chromosome_str_1[:cross_point] + t_chromosome_str_2[cross_point:]
             t_chromosome_2 = t_chromosome_str_2[:cross_point] + t_chromosome_str_1[cross_point:]
 
-            chromosome_1.x1 = t_chromosome_1[:11]
-            chromosome_1.x2 = t_chromosome_1[11:]
+            chromosome_1.x1 = t_chromosome_1[:CHROMOSOME_LENGTH]
+            chromosome_1.x2 = t_chromosome_1[CHROMOSOME_LENGTH:]
 
-            chromosome_2.x1 = t_chromosome_2[:11]
-            chromosome_2.x2 = t_chromosome_2[11:]
+            chromosome_2.x1 = t_chromosome_2[:CHROMOSOME_LENGTH]
+            chromosome_2.x2 = t_chromosome_2[CHROMOSOME_LENGTH:]
             
             is_in_range = -10 <= decode_chromosome(chromosome_1.x1) <= 10 and -10 <= decode_chromosome(chromosome_1.x2) <= 10 and -10 <= decode_chromosome(chromosome_2.x1) <= 10 and -10 <= decode_chromosome(chromosome_2.x2) <= 10
         
         return [chromosome_1, chromosome_2]
    
-    print('Gagal Melakukan Cross Over')
+    #print('Gagal Melakukan Cross Over')
     return populations
     
 
@@ -95,7 +95,8 @@ def mutate(populations: list)-> list:
     for pop in populations:
         chromosome: list = list(pop.x1+pop.x2)
         for i in range(math.floor(MUTATION_RATE * BIT_LENGTH)):
-            chromosome[random.randint(0, BIT_LENGTH - 1)] = '1' if chromosome[random.randint(0, BIT_LENGTH - 1)] == '0' else '0'
+            changed_idx = random.randint(0, BIT_LENGTH - 1)
+            chromosome[changed_idx] = '1' if chromosome[changed_idx] == '0' else '0'
         
         chromosome = ''.join(chromosome)
 
@@ -128,40 +129,47 @@ def generate_step_1_table(populations:list)-> list:
     return data
 
 if __name__=="__main__":
+    list_of_population = []
     best_chromosome_history: list = []
     data: list = initialize_poplations()
     best_chromosome = None
     
     for i in range(GENERATIONS):
-        print(f'\n\nIterasi ke-{i+1}\n\n')
-        print('Tahap 1: Inisiasi / Regenerate')
-        print(tabulate(generate_step_1_table(data), headers=['No', 'x1 (11 bits)', 'x2 (11 bits)', 'Chromosome (22 bits)', 'Decoded x1 Chromosome', 'Decoded x2 Chromosome']))
+        #print(f'\n\nIterasi ke-{i+1}\n\n')
+        #print('Tahap 1: Inisiasi / Regenerate')
+        #print(tabulate(generate_step_1_table(data), headers=['No', 'x1 (11 bits)', 'x2 (11 bits)', 'Chromosome (22 bits)', 'Decoded x1 Chromosome', 'Decoded x2 Chromosome']))
         data = calculate_fitness_for_all_populations(data)
 
-        print('\n\n\nTahap 1.1: Menghitung Nilai Objektif dan Probabilitas Fitness')
-        print(tabulate(data, headers=['No', 'x1 (11 bits)', 'x2 (11 bits)', 'Objective Function', 'Fitness[i]', 'Cumulative', 'Lower Bound', 'Upper Bound']))
+        #print('\n\n\nTahap 1.1: Menghitung Nilai Objektif dan Probabilitas Fitness')
+        #print(tabulate(data, headers=['No', 'x1 (11 bits)', 'x2 (11 bits)', 'Objective Function', 'Fitness[i]', 'Cumulative', 'Lower Bound', 'Upper Bound']))
 
         data = parent_selection(data)
-        print('\n\n\nTahap 2: Seleksi Parent Menggunakan Roullete Selection')
-        print(tabulate(data, headers=['No', 'x1 (11 bits)', 'x2 (11 bits)', 'Objective Function', 'Fitness[i]', 'Cumulative', 'Lower Bound', 'Upper Bound']))
+        #print('\n\n\nTahap 2: Seleksi Parent Menggunakan Roullete Selection')
+        #print(tabulate(data, headers=['No', 'x1 (11 bits)', 'x2 (11 bits)', 'Objective Function', 'Fitness[i]', 'Cumulative', 'Lower Bound', 'Upper Bound']))
 
-        print('\n\n\nTahap 3: Crossover')
+        #print('\n\n\nTahap 3: Crossover')
         data = cross_over(data)
         data = calculate_fitness_for_all_populations(data)
-        print(tabulate(data, headers=['No', 'x1 (11 bits)', 'x2 (11 bits)', 'Objective Function', 'Fitness[i]', 'Cumulative', 'Lower Bound', 'Upper Bound']))
+        #print(tabulate(data, headers=['No', 'x1 (11 bits)', 'x2 (11 bits)', 'Objective Function', 'Fitness[i]', 'Cumulative', 'Lower Bound', 'Upper Bound']))
 
-        print('\n\n\nTahap 4: Mutation')
+        #print('\n\n\nTahap 4: Mutation')
         data = mutate(data)
         data = calculate_fitness_for_all_populations(data)
-        print(tabulate(data, headers=['No', 'x1 (11 bits)', 'x2 (11 bits)', 'Objective Function', 'Fitness[i]', 'Cumulative', 'Lower Bound', 'Upper Bound']))
+        #print(tabulate(data, headers=['No', 'x1 (11 bits)', 'x2 (11 bits)', 'Objective Function', 'Fitness[i]', 'Cumulative', 'Lower Bound', 'Upper Bound']))
 
-        print('\n\n\nTahap 5: Evaluasi (Chromosome yang unggul pada populasi ini adalah:)')
+        #print('\n\n\nTahap 5: Evaluasi (Chromosome yang unggul pada populasi ini adalah:)')
         current_best_chromosome = evaluate_populations(data)
-        print(tabulate(current_best_chromosome, headers=['No', 'x1 (11 bits)', 'x2 (11 bits)', 'Objective Function', 'Fitness[i]', 'Cumulative', 'Lower Bound', 'Upper Bound']))
+        #print(tabulate(current_best_chromosome, headers=['No', 'x1 (11 bits)', 'x2 (11 bits)', 'Objective Function', 'Fitness[i]', 'Cumulative', 'Lower Bound', 'Upper Bound']))
         
         best_chromosome_history.append({"x1": current_best_chromosome[0].x1, "x2": current_best_chromosome[0].x2, "objective_val": float(current_best_chromosome[0].val)})
 
         data = regenerate_populations(data)
+        list_of_population.append(current_best_chromosome)
+        list_of_population.append(data)
+        while (True):
+            if (not checkInList(data, list_of_population)):
+                break
+            data = regenerate_populations(data)
 
         best_chromosome = evaluate_populations([current_best_chromosome[0], best_chromosome[0]]) if best_chromosome != None else current_best_chromosome
         
@@ -172,4 +180,11 @@ if __name__=="__main__":
     print(f'Decoded x2: {decode_chromosome(best_chromosome[0].x2)}')
     best_chromosome_history.append({"x1": best_chromosome[0].x1, "x2": best_chromosome[0].x2, "objective_val": float(best_chromosome[0].val)})
     
-    export_to_csv(best_chromosome_history, 'output.csv')
+    test = []
+
+    for a in best_chromosome_history:
+        if decode_chromosome(a.get("x1")) <= -1.41 and decode_chromosome(a.get("x1")) >= -1.42:
+            test.append({"x1": decode_chromosome(a.get("x1")), "x2": decode_chromosome(a.get("x2")), "objective_val": a.get("objective_val")})
+
+    print(test)
+    export_to_csv(test, 'wtf.csv')

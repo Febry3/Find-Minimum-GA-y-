@@ -25,3 +25,4 @@ class CalculateFitnessTable:
     lower_interval: float = 0
     upper_interval: float = 0
     
+
